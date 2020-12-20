@@ -1,30 +1,55 @@
 const express = require('express');
 var bodyParser = require('body-parser');
-var urlencodedParser = bodyParser.urlencoded({ extended: false })
+const cors = require('cors');
+const { Client, Environment } = require('square');
 
-// Set your stripe private key here
-const stripe = require('stripe')('sk_test_51HnOIGHFh0EYi2CVhNrGyoSxkcAR2Ic5oxKBrWXvU6jgmBHU4kfIBYjq07pD3WbOaU7p5WleVOxtQ4ygKlc8hBb700nNzRsOEp');
+
+const client = new Client({
+  environment: Environment.Sandbox,
+  accessToken: 'EAAAELE2EK68fqrnhrHKWC7Zjpgu29trHtI4B41_GOHx_aO7gqlImIIq43dTj-Np',
+})
+const paymentsApi = client.paymentsApi;
+
 const app = express();
+app.use(cors());
+const port = process.env.PORT || 3000;
 
-app.post('/charge',urlencodedParser, (req, res) => {
-    var stripeToken = req.body.token;
+app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({
+    extended: true
+  }));
 
-     stripe.charges.create({
-        amount: req.body.amount * 100,
-        currency: 'usd',
-        source: stripeToken,
-        // capture: false,
-    }).then(response => {
-        res.send(response)
-        // do something in success here
-     }).catch(error => {
-         res.send(error);
-        // do something in error here
-     });
-    });
 
-    app.use(function(err, req, res, next) {
+
+
+app.post('/smokePaymentRequest', (req,res) => {
+  console.log(req.body);
+  const body = {
+    sourceId: 'cnon:card-nonce-ok',
+    idempotencyKey: 'b141de17-b056-4b5b-8531-46541ea08a00',
+    amountMoney: {
+      amount: 20,
+      currency: 'USD'
+    }
+  };
+
+paymentsApi.createPayment(body).then(response => {
+  console.log(res)
+  res.send(response.result);
+  db.collection('users')
+  .doc(req.body.number)
+  .collection('payments')
+  .doc(response.result.payment.id)
+  .set(response.result);
+}).catch(error=> {
+  console.log(error);
+})
+})
+
+
+app.use(function(err, req, res, next) {
         res.status(err.status || 500).json({ message: err.message });
       });
       
-      app.listen(3000);
+app.listen(port);
