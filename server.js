@@ -49,6 +49,58 @@ app.post('/updateCustomer', (req, res) => {
     });
 });
 
+app.post('/attachPaymentMethod', (req, res) => {
+   console.log(req.body);
+
+   stripe.paymentMethods.attach(
+      String(req.body.paymentId),
+       {customer: String(req.body.customerId)}
+       // capture: false,
+   ).then(response => {
+       res.send(response);
+       // do something in success here
+    }).catch(error => {
+        res.send(error);
+       // do something in error here
+    });
+});
+
+app.post('/detachPaymentMethod', (req, res) => {
+   console.log(req.body);
+
+    stripe.paymentMethods.detach(
+     req.body.paymentId
+   ).then(response => {
+       res.send(response);
+       // do something in success here
+    }).catch(error => {
+        res.send(error);
+       // do something in error here
+    });
+});
+
+
+
+app.post('/createPaymentMethod', (req, res) => {
+   console.log(req.body);
+
+   stripe.paymentMethods.create({
+      type: 'card',
+  card: {
+    number: '4242424242424242',
+    exp_month: 7,
+    exp_year: 2022,
+    cvc: '314',
+  },
+}).then(response => {
+       res.send(response);
+       // do something in success here
+    }).catch(error => {
+        res.send(error);
+       // do something in error here
+    });
+});
+
 
 
 app.get('/getCustomer', (req, res) => {
@@ -93,6 +145,35 @@ app.get('/getCustomerSubscription', (req, res) => {
       // do something in error here
    });
 });
+
+app.get('/getCardDetails', (req, res) => {
+   console.log(req.query);
+ 
+   stripe.customers.retrieveSource( 
+         req.query.id,
+         req.query.card
+       ).then(response => {
+       res.send(response);
+       // do something in success here
+    }).catch(error => {
+        res.send(error);
+       // do something in error here
+    });
+ });
+
+ app.delete('/cancelSubscription', (req, res) => {
+   console.log(req.query);
+ 
+   stripe.subscriptions.del( 
+         req.query.id,
+       ).then(response => {
+       res.send(response);
+       // do something in success here
+    }).catch(error => {
+        res.send(error);
+       // do something in error here
+    });
+ });
 
 app.get('/listInvoices', (req, res) => {
    console.log(req.query);
